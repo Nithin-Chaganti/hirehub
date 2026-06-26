@@ -10,14 +10,13 @@ This project is designed as a resume-ready and interview-ready job portal that t
 
 ## Current Status
 
-- Phase: 1 - Project Foundation
-- Backend foundation: in progress
-- Database modeling: pending
-- Authentication: pending
+- Phase: 4 - Core Database Models complete
+- Backend foundation: complete
+- Database modeling: complete (6 Mongoose models)
+- Authentication: next
 - Authorization: pending
 - Frontend: pending
 - Advanced AI features: pending
-
 ## What this project will cover
 
 Candidate features:
@@ -122,6 +121,7 @@ This separation is important because it makes the application easier to test. Th
 - Development request logging
 - Health check endpoint at `/api/v1/health`
 - Centralized 404 and error handling
+- Core Mongoose models for users, jobs, applications, companies, saved jobs, and notifications
 
 ## Environment Variables
 
@@ -274,4 +274,4 @@ This keeps the project honest and makes future refactoring intentional.
 
 ## Next Step
 
-The next phase is Phase 1: Project Foundation. That should define the problem statement, user personas, scope, functional requirements, non-functional requirements, and interview preparation notes before any feature implementation begins.
+The next phase is Phase 5: Auth Module. It should implement auth service/controller/routes, JWT auth middleware, role middleware, Joi validation middleware, auth validators, and password reset email support. Do not proceed beyond this phase without review and approval.
