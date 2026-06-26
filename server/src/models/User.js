@@ -7,7 +7,7 @@ import {
 
 const { Schema } = mongoose;
 
-const ROLES = ['candidate', 'recruiter'];
+const ROLES = ['candidate', 'recruiter', 'admin'];
 const PHONE_REGEX = /^\d{10}$/;
 const URL_REGEX = /^https?:\/\/[^\s/$.?#].[^\s]*$/i;
 
@@ -62,7 +62,7 @@ const userSchema = new Schema(
       required: [true, 'Role is required'],
       enum: {
         values: ROLES,
-        message: 'Role must be either candidate or recruiter',
+        message: 'Role must be either candidate, recruiter, or admin',
       },
       immutable: true,
     },
