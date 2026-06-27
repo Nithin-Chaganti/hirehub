@@ -149,7 +149,6 @@ const userSchema = new Schema(
   }
 );
 
-userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ skills: 1 });
 
 userSchema.pre('save', async function hashPassword(next) {
