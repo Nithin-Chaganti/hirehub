@@ -14,6 +14,7 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import companyRoutes from './routes/companyRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
+import applicationRoutes from './routes/applicationRoutes.js';
 
 /**
  * Express Application Setup
@@ -163,7 +164,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/companies', companyRoutes);
 app.use('/api/v1/jobs', jobRoutes);
-// app.use('/api/v1/applications', applicationRoutes);
+app.use('/api/v1/applications', applicationRoutes);
 // app.use('/api/v1/saved-jobs', savedJobRoutes);
 // app.use('/api/v1/notifications', notificationRoutes);
 // app.use('/api/v1/ai', aiRoutes);
