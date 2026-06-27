@@ -31,7 +31,7 @@ const companySchema = new Schema(
     logo: {
       url: String,
       publicId: String,
-    },  
+    },
     location: {
       type: String,
       trim: true,
@@ -39,13 +39,13 @@ const companySchema = new Schema(
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Company owner is required'],
+      required: true
     },
   },
   { timestamps: true }
 );
 
-companySchema.index({ createdBy: 1 });
+companySchema.index({ createdBy: 1 }, { unique: true });
 companySchema.index({ name: 1 });
 
 const Company = mongoose.model('Company', companySchema);
