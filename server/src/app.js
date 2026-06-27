@@ -9,7 +9,11 @@ import config from './config/env.js';
 import errorMiddleware from './middleware/errorMiddleware.js';
 import ApiError from './utils/ApiError.js';
 import ApiResponse from './utils/ApiResponse.js';
+import { DB_STATES } from './utils/constants.js';
 import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import companyRoutes from './routes/companyRoutes.js';
+import jobRoutes from './routes/jobRoutes.js';
 
 /**
  * Express Application Setup
@@ -31,6 +35,10 @@ import authRoutes from './routes/authRoutes.js';
  */
 
 const app = express();
+
+if (config.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
 
 // ─── Helmet — Security Headers ───────────────────────────────
 
@@ -92,7 +100,11 @@ const globalLimiter = rateLimit({
   max: 100,                  // 100 requests per windowMs per IP
   standardHeaders: true,     // Return rate limit info in `RateLimit-*` headers
   legacyHeaders: false,      // Disable deprecated `X-RateLimit-*` headers
-  message: new ApiResponse(429, null, 'Too many requests, please try again later'),
+  handler: (req, res) => {
+    res.status(429).json(
+      new ApiResponse(429, null, 'Too many requests, please try again later')
+    );
+  },
 });
 
 app.use(globalLimiter);
@@ -129,13 +141,6 @@ if (config.NODE_ENV === 'development') {
  * Database readyState values (from mongoose.connection.readyState):
  *   0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
  */
-const DB_STATES = {
-  0: 'disconnected',
-  1: 'connected',
-  2: 'connecting',
-  3: 'disconnecting',
-};
-
 app.get('/api/v1/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
 
@@ -145,17 +150,19 @@ app.get('/api/v1/health', (req, res) => {
       timestamp: new Date().toISOString(),
       environment: config.NODE_ENV,
       database: DB_STATES[dbState] || 'unknown',
+      databaseReadyState: dbState,
+      memoryUsage: process.memoryUsage().rss,
     }, 'Server is healthy')
   );
 });
 
 // ─── API Routes ──────────────────────────────────────────────
 
-// Routes will be registered here as they are built in later phases:
+// Routes are registered as they are built in each phase:
 app.use('/api/v1/auth', authRoutes);
-// app.use('/api/v1/users', userRoutes);
-// app.use('/api/v1/companies', companyRoutes);
-// app.use('/api/v1/jobs', jobRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/companies', companyRoutes);
+app.use('/api/v1/jobs', jobRoutes);
 // app.use('/api/v1/applications', applicationRoutes);
 // app.use('/api/v1/saved-jobs', savedJobRoutes);
 // app.use('/api/v1/notifications', notificationRoutes);

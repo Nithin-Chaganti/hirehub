@@ -1,9 +1,7 @@
 import mongoose from 'mongoose';
+import { JOB_TYPES, EXPERIENCE_LEVELS, WORK_MODES } from '../constants/jobConstants.js';
 
 const { Schema } = mongoose;
-
-const JOB_TYPES = ['full-time', 'part-time', 'internship', 'contract'];
-const EXPERIENCE_LEVELS = ['fresher', 'mid', 'senior'];
 
 const salarySchema = new Schema(
   {
@@ -16,7 +14,7 @@ const salarySchema = new Schema(
       min: [0, 'Maximum salary cannot be negative'],
       validate: {
         validator(value) {
-          return value == null || this.min == null || value >= this.min;
+          return value == null || (this.min != null && value >= this.min);
         },
         message: 'Maximum salary must be greater than or equal to minimum salary',
       },
@@ -55,6 +53,7 @@ const jobSchema = new Schema(
         },
       ],
       required: [true, 'At least one requirement is required'],
+      set: (values) => [...new Set(values)],
       validate: {
         validator(value) {
           return Array.isArray(value) && value.length > 0;
@@ -105,13 +104,14 @@ const jobSchema = new Schema(
     },
     expiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      index: true,
     },
     workMode: {
       type: String,
       required: [true, 'Work mode is required'],
       enum: {
-        values: ['remote', 'hybrid', 'onsite'],
+        values: WORK_MODES,
         message: 'Invalid work mode',
       }
     },
@@ -128,6 +128,8 @@ const jobSchema = new Schema(
 jobSchema.index({ title: 'text', description: 'text' });
 jobSchema.index({ location: 1, jobType: 1, experienceLevel: 1 });
 jobSchema.index({ createdAt: -1 });
+jobSchema.index({ isActive: 1, createdAt: -1 });
+jobSchema.index({ postedBy: 1, isActive: 1 });
 jobSchema.index({ postedBy: 1 });
 jobSchema.index({ company: 1 });
 

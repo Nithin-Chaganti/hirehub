@@ -1,4 +1,5 @@
 import Company from '../models/Company.js';
+import Job from '../models/Job.js';
 import ApiError from '../utils/ApiError.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../utils/cloudinaryUpload.js';
 
@@ -113,6 +114,8 @@ export const updateCompany = async (userId, companyId, updateData) => {
     throw new ApiError(403, 'You can only update your own company');
   }
 
+  delete updateData.createdBy;
+
   // Apply updates
   Object.assign(company, updateData);
   await company.save();
@@ -149,7 +152,11 @@ export const uploadCompanyLogo = async (userId, fileBuffer) => {
 
   // Delete old logo if it exists
   if (company.logo?.publicId) {
-    await deleteFromCloudinary(company.logo.publicId, 'image');
+    try {
+      await deleteFromCloudinary(company.logo.publicId, 'image');
+    } catch (error) {
+      console.error('Failed to delete company logo from Cloudinary:', error);
+    }
   }
 
   // Update company document
@@ -180,12 +187,18 @@ export const deleteCompany = async (userId, companyId) => {
     throw new ApiError(403, 'You can only delete your own company');
   }
 
-  // TODO: In the future, reject deletion if the company has active jobs
-  // to prevent accidental loss of job data. For now, proceed.
+  const activeJobs = await Job.exists({ company: company._id, isActive: true });
+  if (activeJobs) {
+    throw new ApiError(409, 'Delete all active jobs before deleting company');
+  }
 
   // Delete logo from Cloudinary if it exists
   if (company.logo?.publicId) {
-    await deleteFromCloudinary(company.logo.publicId, 'image');
+    try {
+      await deleteFromCloudinary(company.logo.publicId, 'image');
+    } catch (error) {
+      console.error('Failed to delete company logo from Cloudinary:', error);
+    }
   }
 
   // Remove the company document — no need to return anything

@@ -1,6 +1,7 @@
 import * as userService from '../services/userService.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
+import ApiError from '../utils/ApiError.js';
 import { getClearCookieOptions } from '../utils/cookieOptions.js';
 
 /**
@@ -92,7 +93,7 @@ export const changePassword = asyncHandler(async (req, res) => {
  */
 export const uploadResumeHandler = asyncHandler(async (req, res) => {
   if (!req.file) {
-    throw new (await import('../utils/ApiError.js')).default(400, 'Please upload a resume file');
+    throw new ApiError(400, 'Please upload a resume file');
   }
 
   const result = await userService.uploadResume(req.user._id, req.file.buffer);

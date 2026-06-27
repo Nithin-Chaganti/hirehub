@@ -72,3 +72,36 @@ export const uploadCompanyLogo = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, result, 'Company logo updated successfully'));
 });
+
+// ─── Get My Company ──────────────────────────────────────────────
+
+/**
+ * GET /api/v1/companies/me
+ *
+ * Returns the authenticated recruiter's own company profile.
+ * Convenience endpoint for the recruiter dashboard.
+ */
+export const getMyCompany = asyncHandler(async (req, res) => {
+  const company = await companyService.getMyCompany(req.user._id);
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, company, 'Company fetched successfully'));
+});
+
+// ─── Delete Company ──────────────────────────────────────────────
+
+/**
+ * DELETE /api/v1/companies/:id
+ *
+ * Deletes the recruiter's company profile and cleans up the logo
+ * from Cloudinary. Ownership is verified in the service layer.
+ */
+export const deleteCompany = asyncHandler(async (req, res) => {
+  await companyService.deleteCompany(req.user._id, req.params.id);
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, 'Company deleted successfully'));
+});
+
