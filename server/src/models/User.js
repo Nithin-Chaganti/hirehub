@@ -9,7 +9,6 @@ const { Schema } = mongoose;
 
 const ROLES = ['candidate', 'recruiter', 'admin'];
 const PHONE_REGEX = /^\d{10}$/;
-const URL_REGEX = /^https?:\/\/[^\s/$.?#].[^\s]*$/i;
 
 const experienceSchema = new Schema(
   {
@@ -48,6 +47,7 @@ const userSchema = new Schema(
     email: {
       type: String,
       required: [true, 'Email is required'],
+      unique: true,
       trim: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address'],
@@ -86,12 +86,22 @@ const userSchema = new Schema(
       trim: true,
     },
     profilePicture: {
-      type: String,
-      trim: true,
+      url: {
+        type: String,
+        trim: true,
+      },
+      publicId: {
+        type: String,
+      },
     },
     resume: {
-      type: String,
-      trim: true,
+      url: {
+        type: String,
+        trim: true,
+      },
+      publicId: {
+        type: String,
+      },
     },
     skills: {
       type: [
@@ -106,6 +116,10 @@ const userSchema = new Schema(
     experience: {
       type: [experienceSchema],
       default: [],
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
     refreshToken: {
       type: String,

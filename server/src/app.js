@@ -9,6 +9,7 @@ import config from './config/env.js';
 import errorMiddleware from './middleware/errorMiddleware.js';
 import ApiError from './utils/ApiError.js';
 import ApiResponse from './utils/ApiResponse.js';
+import authRoutes from './routes/authRoutes.js';
 
 /**
  * Express Application Setup
@@ -151,7 +152,7 @@ app.get('/api/v1/health', (req, res) => {
 // ─── API Routes ──────────────────────────────────────────────
 
 // Routes will be registered here as they are built in later phases:
-// app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/auth', authRoutes);
 // app.use('/api/v1/users', userRoutes);
 // app.use('/api/v1/companies', companyRoutes);
 // app.use('/api/v1/jobs', jobRoutes);
