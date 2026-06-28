@@ -17,6 +17,7 @@ import jobRoutes from './routes/jobRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import savedJobRoutes from './routes/savedJobRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 
 /**
  * Express Application Setup
@@ -169,7 +170,7 @@ app.use('/api/v1/jobs', jobRoutes);
 app.use('/api/v1/applications', applicationRoutes);
 app.use('/api/v1/saved-jobs', savedJobRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
-// app.use('/api/v1/ai', aiRoutes);
+app.use('/api/v1/ai', aiRoutes);
 // app.use('/api/v1/analytics', analyticsRoutes);
 // app.use('/api/v1/talent', talentRoutes);
 // app.use('/api/v1/dashboard', dashboardRoutes);

@@ -41,7 +41,8 @@ const requiredVars = [
   'SMTP_PORT',
   'SMTP_USER',
   'SMTP_PASS',
-  'GEMINI_API_KEY',
+  'OPENAI_API_KEY',
+  'OPENAI_MODEL',           // NEW: required so we can change models easily
   'CLIENT_URL',
 ];
 
@@ -87,7 +88,9 @@ const config = Object.freeze({
   SMTP_PASS: process.env.SMTP_PASS,
 
   // AI
-  GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY,   // optional (future use)
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  OPENAI_MODEL: process.env.OPENAI_MODEL,       // NEW: e.g. gpt-4, gpt-3.5-turbo
 
   // Client
   CLIENT_URL: process.env.CLIENT_URL,
