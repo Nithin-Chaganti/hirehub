@@ -19,6 +19,8 @@ import savedJobRoutes from './routes/savedJobRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import talentRoutes from './routes/talentRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
 
 /**
  * Express Application Setup
@@ -173,8 +175,8 @@ app.use('/api/v1/saved-jobs', savedJobRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/ai', aiRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
-// app.use('/api/v1/talent', talentRoutes);
-// app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/talent', talentRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 
