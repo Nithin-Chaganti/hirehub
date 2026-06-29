@@ -73,7 +73,7 @@ const parseAIJson = (content) => {
  */
 const formatJobsForPrompt = (jobs) => {
   return jobs.map(j =>
-    `ID:${j._id} | Title:${j.title} | Company:${j.company?.name || ''} | Skills:${(j.skills || []).join(',')} | Location:${j.location} | Exp:${j.experienceLevel || 'any'}`
+    `ID:${j._id} | Title:${j.title} | Company:${j.company?.name || ''} | Requirements:${(j.requirements || []).join(',')} | Location:${j.location} | Exp:${j.experienceLevel || 'any'}`
   ).join('\n');
 };
 
@@ -418,15 +418,15 @@ export const getJobRecommendations = async (userId, limit = RECOMMENDATION_DEFAU
 
   // Build pre‑filter (note: skill matching uses exact case; TODO: normalize to lowercase)
   const filter = { isActive: true };
-  filter.skills = { $in: user.skills };
+  filter.requirements = { $in: user.skills };
 
   if (user.location) {
     const escapedLocation = user.location.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    filter.location = { $regex: new RegExp(escapedLocation, 'i') }; // TODO: use indexed locationLower
+    filter.location = { $regex: new RegExp(escapedLocation, 'i') };
   }
 
   const jobs = await Job.find(filter)
-    .select('title skills location experienceLevel company')
+    .select('title requirements location experienceLevel company')
     .populate('company', 'name logoUrl')
     .sort({ createdAt: -1 })
     .limit(JOB_LIMIT_FOR_AI)
@@ -513,7 +513,7 @@ export const getJobMatchScore = async (userId, jobId) => {
   if (!user.skills?.length) throw new ApiError(400, 'Complete your profile for an accurate match score');
 
   const job = await Job.findOne({ _id: jobId, isActive: true })
-    .select('title skills location experienceLevel company')
+    .select('title requirements location experienceLevel company')
     .populate('company', 'name')
     .lean();
 
@@ -532,7 +532,7 @@ Candidate:
 
 Job:
 - Title: ${job.title}
-- Required Skills: ${job.skills?.join(', ') || 'not specified'}
+- Required Skills: ${job.requirements?.join(', ') || 'not specified'}
 - Location: ${job.location}
 - Experience Level: ${job.experienceLevel || 'not specified'}
 

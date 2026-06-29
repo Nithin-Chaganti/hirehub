@@ -90,6 +90,18 @@ export const deriveExperienceLevel = (experienceArray) => {
 };
 
 /**
+ * Apply derived experience fields onto a candidate user document.
+ *
+ * @param {object} user
+ */
+export const applyExperienceFieldSync = (user) => {
+  if (user.role !== 'candidate') return;
+
+  user.totalExperienceYears = computeTotalExperienceYears(user.experience);
+  user.experienceLevel = deriveExperienceLevel(user.experience);
+};
+
+/**
  * Format a short experience summary from the most recent entry.
  */
 export const formatExperienceSummary = (experienceArray) => {

@@ -47,6 +47,11 @@ const applicationSchema = new Schema(
       type: Date,
       default: Date.now,
     },
+    matchScore: {
+      type: Number,
+      min: [0, 'Match score cannot be negative'],
+      max: [100, 'Match score cannot exceed 100'],
+    },
   },
   { timestamps: true }
 );

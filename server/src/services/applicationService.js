@@ -2,6 +2,7 @@ import Application from '../models/Application.js';
 import Job from '../models/Job.js';
 import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
+import { computeJobMatchScore } from '../utils/talentUtils.js';
 import { createNotification } from './notificationService.js';
 
 /**
@@ -77,7 +78,7 @@ const isValidTransition = (currentStatus, newStatus) => {
  */
 export const applyForJob = async (userId, jobId) => {
   // ── 1. Fetch user with only the fields we need ────────────────
-  const user = await User.findById(userId).select('role resume');
+  const user = await User.findById(userId).select('role resume skills');
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
@@ -93,7 +94,7 @@ export const applyForJob = async (userId, jobId) => {
   }
 
   // ── 2. Fetch job (only needed fields) ────────────────────────
-  const job = await Job.findById(jobId).select('title postedBy isActive');
+  const job = await Job.findById(jobId).select('title postedBy isActive requirements');
   if (!job) {
     throw new ApiError(404, 'Job not found');
   }
@@ -110,12 +111,15 @@ export const applyForJob = async (userId, jobId) => {
   }
 
   // ── 4. Create application with duplicate‑handling ────────────
+  const matchScore = computeJobMatchScore(user.skills, job.requirements);
+
   let application;
   try {
     application = await Application.create({
       candidate: userId,
       job: jobId,
       status: 'pending',
+      matchScore,
     });
   } catch (error) {
     // Unique index {candidate, job} causes E11000 on duplicate

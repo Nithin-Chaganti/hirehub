@@ -1,7 +1,9 @@
 import Job from '../models/Job.js';
 import Application from '../models/Application.js';
 import SavedJob from '../models/SavedJob.js';
+import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
+import { computeJobMatchScore } from '../utils/talentUtils.js';
 import {
   VALID_PERIODS,
   DEFAULT_PERIOD,
@@ -248,10 +250,10 @@ const buildCandidatePipeline = (candidateId) => [
           },
         },
         { $unwind: '$job' },
-        { $unwind: '$job.skills' },
+        { $unwind: '$job.requirements' },
         {
           $group: {
-            _id: '$job.skills',
+            _id: '$job.requirements',
             demandCount: { $sum: 1 },
           },
         },
@@ -266,7 +268,15 @@ const buildJobPipeline = (jobId) => [
   { $match: { job: jobId } },
   {
     $facet: {
-      overview: [{ $group: { _id: null, totalApplications: { $sum: 1 } } }],
+      overview: [
+        {
+          $group: {
+            _id: null,
+            totalApplications: { $sum: 1 },
+            averageMatchScore: { $avg: '$matchScore' },
+          },
+        },
+      ],
       byStatus: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
       skillDistribution: [
         {
@@ -352,7 +362,10 @@ export const getCandidateAnalytics = async (candidateId) => {
   const [appResult = DEFAULT_CANDIDATE_ANALYTICS] =
     await Application.aggregate(buildCandidatePipeline(candidateId));
 
-  const savedJobsCount = await SavedJob.countDocuments({ candidate: candidateId });
+  const [savedJobsCount, candidate] = await Promise.all([
+    SavedJob.countDocuments({ candidate: candidateId }),
+    User.findById(candidateId).select('profileViews').lean(),
+  ]);
 
   const overviewData = appResult.overview[0] || {
     totalApplications: 0,
@@ -366,7 +379,7 @@ export const getCandidateAnalytics = async (candidateId) => {
   const overview = {
     totalApplications,
     savedJobs: savedJobsCount,
-    profileViews: null,
+    profileViews: candidate?.profileViews ?? 0,
     responseRate,
   };
 
@@ -390,7 +403,7 @@ export const getCandidateAnalytics = async (candidateId) => {
  */
 export const getJobAnalytics = async (recruiterId, jobId) => {
   const job = await Job.findOne({ _id: jobId, postedBy: recruiterId })
-    .select('title createdAt applicationCount views')
+    .select('title createdAt applicationCount views requirements')
     .lean();
 
   if (!job) {
@@ -405,10 +418,29 @@ export const getJobAnalytics = async (recruiterId, jobId) => {
     await Application.aggregate(buildJobPipeline(jobId));
 
   const totalApplications = appStats.overview[0]?.totalApplications || 0;
+  let averageMatchScore = appStats.overview[0]?.averageMatchScore;
+
+  if (averageMatchScore == null && totalApplications > 0) {
+    const legacyApplications = await Application.find({ job: jobId })
+      .populate('candidate', 'skills')
+      .lean();
+
+    const scores = legacyApplications
+      .map((application) =>
+        computeJobMatchScore(application.candidate?.skills, job.requirements)
+      )
+      .filter((score) => score > 0);
+
+    averageMatchScore = scores.length > 0
+      ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+      : 0;
+  } else {
+    averageMatchScore = averageMatchScore != null ? Math.round(averageMatchScore) : 0;
+  }
 
   const overview = {
     totalApplications,
-    averageMatchScore: null,
+    averageMatchScore,
     daysActive,
     viewCount: job.views || 0,
   };

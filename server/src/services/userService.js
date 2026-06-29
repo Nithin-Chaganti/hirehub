@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../utils/cloudinaryUpload.js';
+import { recordProfileView } from '../utils/userProfileUtils.js';
 
 /**
  * User Service — Business Logic Layer
@@ -31,6 +32,9 @@ const IMMUTABLE_FIELDS = [
   'resetPasswordToken',
   'resetPasswordExpire',
   'isActive',
+  'profileViews',
+  'totalExperienceYears',
+  'experienceLevel',
 ];
 
 /**
@@ -63,6 +67,8 @@ export const getCandidateProfile = async (candidateId) => {
     throw new ApiError(404, 'Candidate not found');
   }
 
+  recordProfileView(candidateId);
+
   return candidate;
 };
 
@@ -78,18 +84,14 @@ export const getCandidateProfile = async (candidateId) => {
 export const updateCandidateProfile = async (userId, updateData) => {
   const sanitizedData = stripImmutableFields(updateData);
 
-  const user = await User.findByIdAndUpdate(
-    userId,
-    sanitizedData,
-    {
-      new: true,           // Return the updated document
-      runValidators: true, // Run Mongoose schema validators on update
-    }
-  );
+  const user = await User.findById(userId);
 
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
+
+  Object.assign(user, sanitizedData);
+  await user.save();
 
   return user;
 };

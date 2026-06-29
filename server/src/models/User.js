@@ -1,9 +1,11 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { EXPERIENCE_LEVELS } from '../constants/jobConstants.js';
 import {
   generateAccessToken,
   generateRefreshToken,
 } from '../utils/tokenUtils.js';
+import { applyExperienceFieldSync } from '../utils/talentUtils.js';
 
 const { Schema } = mongoose;
 
@@ -117,6 +119,24 @@ const userSchema = new Schema(
       type: [experienceSchema],
       default: [],
     },
+    totalExperienceYears: {
+      type: Number,
+      default: 0,
+      min: [0, 'Total experience years cannot be negative'],
+    },
+    experienceLevel: {
+      type: String,
+      enum: {
+        values: EXPERIENCE_LEVELS,
+        message: 'Invalid experience level',
+      },
+      default: 'fresher',
+    },
+    profileViews: {
+      type: Number,
+      default: 0,
+      min: [0, 'Profile views cannot be negative'],
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -150,8 +170,13 @@ const userSchema = new Schema(
 );
 
 userSchema.index({ skills: 1 });
+userSchema.index({ role: 1, isActive: 1, experienceLevel: 1 });
 
-userSchema.pre('save', async function hashPassword(next) {
+userSchema.pre('save', async function prepareUser(next) {
+  if (this.role === 'candidate' && (this.isModified('experience') || this.isNew)) {
+    applyExperienceFieldSync(this);
+  }
+
   if (!this.isModified('passwordHash')) {
     return next();
   }

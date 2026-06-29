@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import config from './env.js';
+import { syncAllCandidateExperienceFields } from '../utils/userProfileUtils.js';
 
 /**
  * MongoDB Connection via Mongoose
@@ -40,6 +41,10 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(config.MONGODB_URI);
     console.log(`MongoDB connected: ${conn.connection.host}`);
+
+    void syncAllCandidateExperienceFields().catch((error) => {
+      console.error('Candidate experience field sync failed:', error.message);
+    });
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);
     process.exit(1);
